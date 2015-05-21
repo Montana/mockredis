@@ -18,12 +18,14 @@ class TestRedisHash(object):
         self.redis.hset(hashkey, "key", "value")
         ok_(self.redis.hexists(hashkey, "key"))
         ok_(not self.redis.hexists(hashkey, "key2"))
+        ok_(self.redis.hexists(name=hashkey, key="key"))
 
     def test_hgetall(self):
         hashkey = "hash"
         eq_({}, self.redis.hgetall(hashkey))
         self.redis.hset(hashkey, "key", "value")
         eq_({b"key": b"value"}, self.redis.hgetall(hashkey))
+        eq_({b"key": b"value"}, self.redis.hgetall(name=hashkey))
 
     def test_hdel(self):
         hashkey = "hash"
@@ -41,17 +43,20 @@ class TestRedisHash(object):
         hashkey = "hash"
         eq_(0, self.redis.hlen(hashkey))
         self.redis.hset(hashkey, "key", "value")
-        eq_(1, self.redis.hlen(hashkey))
+        eq_(1, self.redis.hlen(name=hashkey))
 
     def test_hset(self):
         hashkey = "hash"
         eq_(1, self.redis.hset(hashkey, "key", "value"))
         eq_(b"value", self.redis.hget(hashkey, "key"))
         eq_(0, self.redis.hset(hashkey, "key", "value2"))
+        eq_(0, self.redis.hset(name=hashkey, key="key", value="value2"))
 
     def test_hget(self):
         hashkey = "hash"
         eq_(None, self.redis.hget(hashkey, "key"))
+        eq_(1, self.redis.hset(hashkey, "key", "value"))
+        eq_(b"value", self.redis.hget(name=hashkey, key="key"))
 
     def test_hset_integral(self):
         hashkey = "hash"
@@ -65,12 +70,18 @@ class TestRedisHash(object):
         eq_(b"value1", self.redis.hget(hashkey, "key"))
         eq_(0, self.redis.hsetnx(hashkey, "key", "value2"))
         eq_(b"value1", self.redis.hget(hashkey, "key"))
+        eq_(0, self.redis.hsetnx(name=hashkey, key="key", value="value2"))
+        eq_(b"value1", self.redis.hget(hashkey, "key"))
 
     def test_hmset(self):
         hashkey = "hash"
         eq_(True, self.redis.hmset(hashkey, {"key1": "value1", "key2": "value2"}))
         eq_(b"value1", self.redis.hget(hashkey, "key1"))
         eq_(b"value2", self.redis.hget(hashkey, "key2"))
+        eq_(True, self.redis.hmset(name=hashkey,
+                                   mapping={"key3": "value1", "key4": "value2"}))
+        eq_(b"value1", self.redis.hget(hashkey, "key3"))
+        eq_(b"value2", self.redis.hget(hashkey, "key4"))
 
     def test_hmset_integral(self):
         hashkey = "hash"
@@ -86,25 +97,28 @@ class TestRedisHash(object):
         eq_([b"2", None, b"4"], self.redis.hmget(hashkey, "1", "2", "3"))
         eq_([b"2", None, b"4"], self.redis.hmget(hashkey, ["1", "2", "3"]))
         eq_([b"2", None, b"4"], self.redis.hmget(hashkey, [1, 2, 3]))
+        eq_([b"2", None, b"4"], self.redis.hmget(name=hashkey, keys=[1, 2, 3]))
 
     def test_hincrby(self):
         hashkey = "hash"
         eq_(1, self.redis.hincrby(hashkey, "key", 1))
-        eq_(3, self.redis.hincrby(hashkey, "key", 2))
+        eq_(3, self.redis.hincrby(name=hashkey, key="key", amount=2))
         eq_(b"3", self.redis.hget(hashkey, "key"))
 
     def test_hincrbyfloat(self):
         hashkey = "hash"
         eq_(1.2, self.redis.hincrbyfloat(hashkey, "key", 1.2))
-        eq_(3.5, self.redis.hincrbyfloat(hashkey, "key", 2.3))
+        eq_(3.5, self.redis.hincrbyfloat(name=hashkey, key="key", amount=2.3))
         eq_(b"3.5", self.redis.hget(hashkey, "key"))
 
     def test_hkeys(self):
         hashkey = "hash"
         self.redis.hmset(hashkey, {1: 2, 3: 4})
         eq_([b"1", b"3"], sorted(self.redis.hkeys(hashkey)))
+        eq_([b"1", b"3"], sorted(self.redis.hkeys(name=hashkey)))
 
     def test_hvals(self):
         hashkey = "hash"
         self.redis.hmset(hashkey, {1: 2, 3: 4})
         eq_([b"2", b"4"], sorted(self.redis.hvals(hashkey)))
+        eq_([b"2", b"4"], sorted(self.redis.hvals(name=hashkey)))

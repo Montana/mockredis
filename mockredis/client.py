@@ -454,28 +454,28 @@ class MockRedis(object):
 
     # Hash Functions #
 
-    def hexists(self, hashkey, attribute):
+    def hexists(self, name, key):
         """Emulate hexists."""
 
-        redis_hash = self._get_hash(hashkey, 'HEXISTS')
-        return self._encode(attribute) in redis_hash
+        redis_hash = self._get_hash(name, 'HEXISTS')
+        return self._encode(key) in redis_hash
 
-    def hget(self, hashkey, attribute):
+    def hget(self, name, key):
         """Emulate hget."""
 
-        redis_hash = self._get_hash(hashkey, 'HGET')
-        return redis_hash.get(self._encode(attribute))
+        redis_hash = self._get_hash(name, 'HGET')
+        return redis_hash.get(self._encode(key))
 
-    def hgetall(self, hashkey):
+    def hgetall(self, name):
         """Emulate hgetall."""
 
-        redis_hash = self._get_hash(hashkey, 'HGETALL')
+        redis_hash = self._get_hash(name, 'HGETALL')
         return dict(redis_hash)
 
-    def hdel(self, hashkey, *keys):
+    def hdel(self, name, *keys):
         """Emulate hdel"""
 
-        redis_hash = self._get_hash(hashkey, 'HDEL')
+        redis_hash = self._get_hash(name, 'HDEL')
         count = 0
         for key in keys:
             attribute = self._encode(key)
@@ -483,59 +483,59 @@ class MockRedis(object):
                 count += 1
                 del redis_hash[attribute]
                 if not redis_hash:
-                    self.delete(hashkey)
+                    self.delete(name)
         return count
 
-    def hlen(self, hashkey):
+    def hlen(self, name):
         """Emulate hlen."""
-        redis_hash = self._get_hash(hashkey, 'HLEN')
+        redis_hash = self._get_hash(name, 'HLEN')
         return len(redis_hash)
 
-    def hmset(self, hashkey, value):
+    def hmset(self, name, mapping):
         """Emulate hmset."""
 
-        redis_hash = self._get_hash(hashkey, 'HMSET', create=True)
-        for key, value in value.items():
+        redis_hash = self._get_hash(name, 'HMSET', create=True)
+        for key, value in mapping.items():
             attribute = self._encode(key)
             redis_hash[attribute] = self._encode(value)
         return True
 
-    def hmget(self, hashkey, keys, *args):
+    def hmget(self, name, keys, *args):
         """Emulate hmget."""
 
-        redis_hash = self._get_hash(hashkey, 'HMGET')
+        redis_hash = self._get_hash(name, 'HMGET')
         attributes = self._list_or_args(keys, args)
         return [redis_hash.get(self._encode(attribute)) for attribute in attributes]
 
-    def hset(self, hashkey, attribute, value):
+    def hset(self, name, key, value):
         """Emulate hset."""
 
-        redis_hash = self._get_hash(hashkey, 'HSET', create=True)
-        attribute = self._encode(attribute)
+        redis_hash = self._get_hash(name, 'HSET', create=True)
+        attribute = self._encode(key)
         attribute_present = attribute in redis_hash
         redis_hash[attribute] = self._encode(value)
         return long(0) if attribute_present else long(1)
 
-    def hsetnx(self, hashkey, attribute, value):
+    def hsetnx(self, name, key, value):
         """Emulate hsetnx."""
 
-        redis_hash = self._get_hash(hashkey, 'HSETNX', create=True)
-        attribute = self._encode(attribute)
+        redis_hash = self._get_hash(name, 'HSETNX', create=True)
+        attribute = self._encode(key)
         if attribute in redis_hash:
             return long(0)
         else:
             redis_hash[attribute] = self._encode(value)
             return long(1)
 
-    def hincrby(self, hashkey, attribute, increment=1):
+    def hincrby(self, name, key, amount=1):
         """Emulate hincrby."""
 
-        return self._hincrby(hashkey, attribute, 'HINCRBY', long, increment)
+        return self._hincrby(name, key, 'HINCRBY', long, amount)
 
-    def hincrbyfloat(self, hashkey, attribute, increment=1.0):
+    def hincrbyfloat(self, name, key, amount=1.0):
         """Emulate hincrbyfloat."""
 
-        return self._hincrby(hashkey, attribute, 'HINCRBYFLOAT', float, increment)
+        return self._hincrby(name, key, 'HINCRBYFLOAT', float, amount)
 
     def _hincrby(self, hashkey, attribute, command, type_, increment):
         """Shared hincrby and hincrbyfloat routine"""
@@ -545,16 +545,16 @@ class MockRedis(object):
         redis_hash[attribute] = self._encode(previous_value + increment)
         return type_(redis_hash[attribute])
 
-    def hkeys(self, hashkey):
+    def hkeys(self, name):
         """Emulate hkeys."""
 
-        redis_hash = self._get_hash(hashkey, 'HKEYS')
+        redis_hash = self._get_hash(name, 'HKEYS')
         return redis_hash.keys()
 
-    def hvals(self, hashkey):
+    def hvals(self, name):
         """Emulate hvals."""
 
-        redis_hash = self._get_hash(hashkey, 'HVALS')
+        redis_hash = self._get_hash(name, 'HVALS')
         return redis_hash.values()
 
     # List Functions #
