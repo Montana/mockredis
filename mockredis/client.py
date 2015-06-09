@@ -964,10 +964,9 @@ class MockRedis(object):
         """Emulate sismember."""
         redis_set = self._get_set(name, 'SISMEMBER')
         if not redis_set:
-            return 0
+            return False
 
-        result = self._encode(value) in redis_set
-        return 1 if result else 0
+        return self._encode(value) in redis_set
 
     def smembers(self, name):
         """Emulate smembers."""
