@@ -7,7 +7,6 @@ class MockRedisPipeline(object):
     """
     Simulates a redis-python pipeline object.
     """
-
     def __init__(self, mock_redis, transaction=True, shard_hint=None):
         self.mock_redis = mock_redis
         self._reset()
@@ -28,6 +27,7 @@ class MockRedisPipeline(object):
             else:
                 self.commands.append(lambda: command(*args, **kwargs))
                 return self
+
         return wrapper
 
     def watch(self, *keys):
@@ -39,7 +39,9 @@ class MockRedisPipeline(object):
             raise RedisError("Cannot issue a WATCH after a MULTI")
         self.watching = True
         for key in keys:
-            self._watched_keys[key] = deepcopy(self.mock_redis.redis.get(self.mock_redis._encode(key)))  # noqa
+            self._watched_keys[key] = deepcopy(
+                self.mock_redis.redis.get(
+                    self.mock_redis._encode(key)))  # noqa
 
     def multi(self):
         """
@@ -49,7 +51,8 @@ class MockRedisPipeline(object):
         if self.explicit_transaction:
             raise RedisError("Cannot issue nested calls to MULTI")
         if self.commands:
-            raise RedisError("Commands without an initial WATCH have already been issued")
+            raise RedisError(
+                "Commands without an initial WATCH have already been issued")
         self.explicit_transaction = True
 
     def execute(self):
@@ -58,7 +61,8 @@ class MockRedisPipeline(object):
         """
         try:
             for key, value in self._watched_keys.items():
-                if self.mock_redis.redis.get(self.mock_redis._encode(key)) != value:
+                if self.mock_redis.redis.get(
+                        self.mock_redis._encode(key)) != value:
                     raise WatchError("Watched variable changed.")
             return [command() for command in self.commands]
         finally:
